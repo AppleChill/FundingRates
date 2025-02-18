@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funding Rates 排序</title>
+</head>
+<body>
+    <h1>Funding Rates 排序</h1>
+    <p id="progress">已處理 0 / 0 筆</p>
+    <ul id="funding-rates"></ul>
+
+    <script>
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const apiUrlTradingPairs = 'https://fapi.bitunix.com/api/v1/futures/market/trading_pairs';
+        const apiUrlFundingRate = 'https://fapi.bitunix.com/api/v1/futures/market/funding_rate?symbol=';
+
+        async function fetchTradingPairs() {
+            try {
+                const response = await fetch(proxyUrl + apiUrlTradingPairs);
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const data = await response.json();
+                return data.data.map(pair => pair.symbol);
+            } catch (error) {
+                handleFetchError(error);
+                return [];
+            }
+        }
+
+        async function fetchFundingRate(symbol, rates, progress) {
+            try {
+                const response = await fetch(proxyUrl + apiUrlFundingRate + symbol);
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const data = await response.json();
+                const fundingRate = parseFloat(data.data.fundingRate);
+
+                rates.push({ symbol, fundingRate });
+                progress.completed++;
+
+                updateDisplay(rates, progress);
+            } catch (error) {
+                handleFetchError(error);
+            }
+        }
+
+        function updateDisplay(rates, progress) {
+            const progressContainer = document.getElementById('progress');
+            const container = document.getElementById('funding-rates');
+
+            // 更新進度
+            progressContainer.textContent = `已處理 ${progress.completed} / ${progress.total} 筆`;
+
+            // 依照資金費率排序後顯示
+            container.innerHTML = rates
+                .sort((a, b) => a.fundingRate - b.fundingRate)
+                .map(rate => `<li>${rate.symbol}: ${rate.fundingRate}</li>`)
+                .join('');
+        }
+
+        function handleFetchError(error) {
+            console.error("請求錯誤:", error);
+            alert("請求失敗，可能需要啟用 CORS 代理。\n即將前往設定頁面，請點擊 'Request temporary access to the demo server'。");
+            window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
+        }
+
+        async function displayFundingRates() {
+            const symbols = await fetchTradingPairs();
+            if (symbols.length === 0) return;
+
+            const rates = [];
+            const progress = { completed: 0, total: symbols.length };
+
+            updateDisplay(rates, progress); // 初始化進度顯示
+
+            for (const symbol of symbols) {
+                fetchFundingRate(symbol, rates, progress);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', displayFundingRates);
+    </script>
+</body>
+</html>
