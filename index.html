@@ -11,9 +11,9 @@
     <ul id="funding-rates"></ul>
 
     <script>
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        const apiUrlTradingPairs = 'https://fapi.bitunix.com/api/v1/futures/market/trading_pairs';
-        const apiUrlFundingRate = 'https://fapi.bitunix.com/api/v1/futures/market/funding_rate?symbol=';
+        const proxyUrl = 'https://crimson-brook-7b64.siriuschurchill.workers.dev/api';
+        const apiUrlTradingPairs = '/trading_pairs';
+        const apiUrlFundingRate = '/funding_rate?symbol=';
 
         async function fetchTradingPairs() {
             try {
@@ -22,7 +22,8 @@
                 const data = await response.json();
                 return data.data.map(pair => pair.symbol);
             } catch (error) {
-                handleFetchError(error);
+                alert("請求失敗，請檢查 Cloudflare Workers 是否正常運作！");
+                console.error(error);
                 return [];
             }
         }
@@ -39,7 +40,7 @@
 
                 updateDisplay(rates, progress);
             } catch (error) {
-                handleFetchError(error);
+                console.error("請求錯誤:", error);
             }
         }
 
@@ -55,12 +56,6 @@
                 .sort((a, b) => a.fundingRate - b.fundingRate)
                 .map(rate => `<li>${rate.symbol}: ${rate.fundingRate}</li>`)
                 .join('');
-        }
-
-        function handleFetchError(error) {
-            console.error("請求錯誤:", error);
-            alert("請求失敗，可能需要啟用 CORS 代理。\n即將前往設定頁面，請點擊 'Request temporary access to the demo server'。");
-            window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
         }
 
         async function displayFundingRates() {
