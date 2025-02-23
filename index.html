@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funding Rates 排序</title>
+    <style>
+        .danger { color: red; font-weight: bold; }
+    </style>
 </head>
 <body>
     <h1>Funding Rates 排序</h1>
@@ -14,6 +17,7 @@
         const proxyUrl = 'https://crimson-brook-7b64.siriuschurchill.workers.dev/api';
         const apiUrlTradingPairs = '/trading_pairs';
         const apiUrlFundingRate = '/funding_rate?symbol=';
+        const dangerSymbols = ["HIVEUSDT", "MEUSDT", "GLMUSDT"];
 
         async function fetchTradingPairs() {
             try {
@@ -54,7 +58,10 @@
             // 依照資金費率排序後顯示
             container.innerHTML = rates
                 .sort((a, b) => a.fundingRate - b.fundingRate)
-                .map(rate => `<li>${rate.symbol}: ${rate.fundingRate}</li>`)
+                .map(rate => {
+                    const isDanger = dangerSymbols.includes(rate.symbol);
+                    return `<li class="${isDanger ? 'danger' : ''}">${rate.symbol}: ${rate.fundingRate}</li>`;
+                })
                 .join('');
         }
 
