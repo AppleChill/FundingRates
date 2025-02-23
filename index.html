@@ -4,14 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funding Rates 排序</title>
+    <!-- 引入 Prism.js 的 CSS 和 JavaScript -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.27.0/themes/prism.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.27.0/prism.js"></script>
     <style>
+        body {
+            display: flex;
+            justify-content: space-between; /* 使內容左右排列 */
+            margin: 20px;
+        }
+        #funding-rates-container {
+            flex: 1;
+        }
         .danger { color: red; font-weight: bold; }
+        #funding-rates-content {
+            display: none;
+            white-space: pre-wrap;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            width: 45%; /* 右側區域寬度 */
+            max-height: 80vh; /* 最大高度 */
+            overflow: auto;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Funding Rates 排序</h1>
-    <p id="progress">已處理 0 / 0 筆</p>
-    <ul id="funding-rates"></ul>
+    <div id="funding-rates-container">
+        <h1>Funding Rates 排序</h1>
+        <button onclick="showFundingRates()">顯示 CryptoTrading.js 內容</button>
+        <p id="progress">已處理 0 / 0 筆</p>
+        <ul id="funding-rates"></ul>
+    </div>
+
+    <!-- 顯示 JavaScript 代碼的區域 -->
+    <pre id="funding-rates-content"><code class="language-javascript"></code></pre>
 
     <script>
         const proxyUrl = 'https://crimson-brook-7b64.siriuschurchill.workers.dev/api';
@@ -77,6 +112,56 @@
             for (const symbol of symbols) {
                 fetchFundingRate(symbol, rates, progress);
             }
+        }
+
+        function showFundingRates() {
+            const jsCode = `
+let intervalID = setInterval(() => {
+    let value = document.querySelectorAll(".fvn-number")[9].innerText;
+    console.log(\`倒數計時: \${document.querySelectorAll(".fvn-number")[9].innerText}\`);
+    // 檢查時間是否為 0:0:0
+    if (value.includes("00:00:00")) {
+        console.log("ok");
+        clearInterval(intervalID); // 停止定時器
+
+        const buttons = document.querySelectorAll('button .fs-14.color-white');
+        // 查找包含「賣出開空」的按鈕並點擊
+        buttons.forEach(button => {
+            if (button.innerText.includes("賣出開空")) {
+                const buttonElement = button.closest('button');
+                buttonElement.click();
+                console.log("賣出開空按鈕已被點擊");
+                
+                let count = 0; // 計數變數
+                const interval = setInterval(() => {
+                    const closeButton = document.querySelector('a.color-text-button');
+                    if (closeButton) {
+                        closeButton.click();
+                        console.log("一鍵平倉按鈕已被點擊");
+        
+                       const confirmButton = Array.from(document.querySelectorAll('button.footer_btn')).find(button => button.getAttribute('type') === 'button' && button.innerText.includes("確定"));
+                       if (confirmButton) {
+                            confirmButton.click();
+                            console.log("確定按鈕已被點擊");
+                       }
+                    }
+                    count++; // 增加計數
+                    if (count >= 30) { // 當執行達到 30 次時，停止 setInterval
+                        clearInterval(interval);
+                        console.log("已達到 30 次執行，停止執行");
+                    }
+                }, 100); // 每 100 毫秒（0.1 秒）執行一次      
+            }
+        });
+    }
+}, 10);`;
+
+            // 顯示 JavaScript 內容
+            document.getElementById('funding-rates-content').innerHTML = `<code class="language-javascript">${jsCode}</code>`;
+            document.getElementById('funding-rates-content').style.display = 'block';
+
+            // 觸發 Prism.js 語法高亮
+            Prism.highlightAll();
         }
 
         document.addEventListener('DOMContentLoaded', displayFundingRates);
