@@ -1,17 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funding Rates 排序</title>
-    <!-- 引入 Prism.js 的 CSS 和 JavaScript -->
     <link href="https://cdn.jsdelivr.net/npm/prismjs@1.27.0/themes/prism.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.27.0/prism.js"></script>
     <style>
         body {
             display: flex;
-            justify-content: space-between; /* 使內容左右排列 */
+            justify-content: space-between;
             margin: 20px;
         }
         #funding-rates-container {
@@ -25,8 +23,8 @@
             padding: 10px;
             border: 1px solid #ddd;
             margin-top: 20px;
-            width: 45%; /* 右側區域寬度 */
-            max-height: 80vh; /* 最大高度 */
+            width: 45%;
+            max-height: 80vh;
             overflow: auto;
         }
         pre {
@@ -46,7 +44,6 @@
         <ul id="funding-rates"></ul>
     </div>
 
-    <!-- 顯示 JavaScript 代碼的區域 -->
     <pre id="funding-rates-content"><code class="language-javascript"></code></pre>
 
     <script>
@@ -88,10 +85,8 @@
             const progressContainer = document.getElementById('progress');
             const container = document.getElementById('funding-rates');
 
-            // 更新進度
             progressContainer.textContent = `已處理 ${progress.completed} / ${progress.total} 筆`;
 
-            // 依照資金費率排序後顯示
             container.innerHTML = rates
                 .sort((a, b) => a.fundingRate - b.fundingRate)
                 .map(rate => {
@@ -108,75 +103,26 @@
             const rates = [];
             const progress = { completed: 0, total: symbols.length };
 
-            updateDisplay(rates, progress); // 初始化進度顯示
+            updateDisplay(rates, progress);
 
             for (const symbol of symbols) {
                 fetchFundingRate(symbol, rates, progress);
             }
         }
 
-        function showFundingRates() {
-            const jsCode = `
-let intervalID = setInterval(() => {
-    let elements = document.querySelectorAll(".fvn-number");
-    
-    // 過濾出符合 HH:MM:SS 格式的元素
-    let regex = /^\\d{2}:\\d{2}:\\d{2}$/;
-    let validElement = Array.from(elements).find(el => regex.test(el.innerText));
+        async function showFundingRates() {
+            try {
+                const response = await fetch('CryptoTrading.js');
+                if (!response.ok) throw new Error(`無法載入 CryptoTrading.js: ${response.status}`);
+                
+                const jsCode = await response.text();
+                document.getElementById('funding-rates-content').innerHTML = `<code class="language-javascript">${Prism.util.encode(jsCode)}</code>`;
+                document.getElementById('funding-rates-content').style.display = 'block';
 
-    if (!validElement) {
-        console.log("未找到符合時間格式的元素");
-        return; // 如果沒有符合的時間格式，直接 return，不執行後續邏輯
-    }
-
-    let value = validElement.innerText;
-    console.log(\`倒數計時: \${value}\`);
-
-    // 檢查時間是否為 00:00:00
-    if (value === "00:00:00") {
-        console.log("ok");
-        clearInterval(intervalID); // 停止定時器
-
-        const buttons = document.querySelectorAll('button .fs-14.color-white');
-        // 查找包含「賣出開空」的按鈕並點擊
-        buttons.forEach(button => {
-            if (button.innerText.includes("賣出開空")) {
-                const buttonElement = button.closest('button');
-                buttonElement.click();
-                console.log("賣出開空按鈕已被點擊");
-
-                let count = 0; // 計數變數
-                const interval = setInterval(() => {
-                    const closeButton = document.querySelector('a.color-text-button');
-                    if (closeButton) {
-                        closeButton.click();
-                        console.log("一鍵平倉按鈕已被點擊");
-
-                        const confirmButton = Array.from(document.querySelectorAll('button.footer_btn'))
-                            .find(button => button.getAttribute('type') === 'button' && button.innerText.includes("確定"));
-                        
-                        if (confirmButton) {
-                            confirmButton.click();
-                            console.log("確定按鈕已被點擊");
-                        }
-                    }
-                    count++; // 增加計數
-                    if (count >= 30) { // 當執行達到 30 次時，停止 setInterval
-                        clearInterval(interval);
-                        console.log("已達到 30 次執行，停止執行");
-                    }
-                }, 100); // 每 100 毫秒（0.1 秒）執行一次      
+                Prism.highlightAll();
+            } catch (error) {
+                console.error("載入 CryptoTrading.js 錯誤:", error);
             }
-        });
-    }
-}, 10);`;
-
-            // 顯示 JavaScript 內容
-            document.getElementById('funding-rates-content').innerHTML = `<code class="language-javascript">${jsCode}</code>`;
-            document.getElementById('funding-rates-content').style.display = 'block';
-
-            // 觸發 Prism.js 語法高亮
-            Prism.highlightAll();
         }
 
         document.addEventListener('DOMContentLoaded', displayFundingRates);
