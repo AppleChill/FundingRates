@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -120,7 +121,7 @@ let intervalID = setInterval(() => {
     let elements = document.querySelectorAll(".fvn-number");
     
     // 過濾出符合 HH:MM:SS 格式的元素
-    let regex = /^\d{2}:\d{2}:\d{2}$/;
+    let regex = /^\\d{2}:\\d{2}:\\d{2}$/;
     let validElement = Array.from(elements).find(el => regex.test(el.innerText));
 
     if (!validElement) {
@@ -129,14 +130,14 @@ let intervalID = setInterval(() => {
     }
 
     let value = validElement.innerText;
-    console.log(`倒數計時: ${value}`);
+    console.log(\`倒數計時: \${value}\`);
 
     // 檢查時間是否為 00:00:00
     if (value === "00:00:00") {
         console.log("ok");
         clearInterval(intervalID); // 停止定時器
 
-        const buttons = document.querySelectorAll('button.fs-14.color-white');
+        const buttons = document.querySelectorAll('button .fs-14.color-white');
         // 查找包含「賣出開空」的按鈕並點擊
         buttons.forEach(button => {
             if (button.innerText.includes("賣出開空")) {
