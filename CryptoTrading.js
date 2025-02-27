@@ -30,48 +30,43 @@ let intervalID = setInterval(() => {
                 clearInterval(intervalID);
                 console.log("已停止監測時間變化");
 
-                // **延遲 500ms，然後開始檢查「一鍵平倉」是否變可點擊**
-                setTimeout(() => {
-                    console.log("開始監測『一鍵平倉』是否變可點擊...");
+                // **開始監測「一鍵平倉」是否變可點擊**
+                console.log("開始監測『一鍵平倉』是否變可點擊...");
+                let checkCloseButtonInterval = setInterval(() => {
+                    const closeButton = document.querySelector('a.color-text-button');
 
-                    let checkCloseButtonInterval = setInterval(() => {
-                        const closeButton = document.querySelector('a.color-text-button');
+                    // **當「一鍵平倉」按鈕變可點擊時**
+                    if (closeButton && !closeButton.classList.contains("cursor-not-allowed")) {
+                        console.log("一鍵平倉按鈕現在可點擊，執行點擊...");
+                        closeButton.click();
+                        console.log("一鍵平倉按鈕已被點擊");
 
-                        // **檢查「一鍵平倉」按鈕是否可點擊**
-                        if (closeButton && !closeButton.classList.contains("cursor-not-allowed")) {
-                            console.log("一鍵平倉按鈕現在可點擊，開始執行點擊動作...");
-
-                            let count = 0; // 計數變數
-                            const executeCloseInterval = setInterval(() => {
-                                if (count >= 30) {
-                                    clearInterval(executeCloseInterval);
-                                    console.log("一鍵平倉已執行 30 次，停止點擊");
-                                    return;
-                                }
-
-                                // **執行點擊「一鍵平倉」**
-                                closeButton.click();
-                                console.log(`一鍵平倉按鈕點擊次數：${count + 1}`);
-
-                                // **嘗試點擊「確定」按鈕**
+                        // **點擊「一鍵平倉」後，延遲 500ms 再開始點擊「確定」**
+                        setTimeout(() => {
+                            let confirmCount = 0; // 計數變數，最多執行 30 次點擊
+                            let confirmInterval = setInterval(() => {
                                 const confirmButton = Array.from(document.querySelectorAll('button.footer_btn'))
                                     .find(button => button.getAttribute('type') === 'button' && button.innerText.includes("確定"));
 
                                 if (confirmButton) {
                                     confirmButton.click();
-                                    console.log("確定按鈕已被點擊");
+                                    console.log(`確定按鈕已被點擊 (${confirmCount + 1}/30)`);
                                 }
 
-                                count++; // 增加計數
-                            }, 100); // **每 100 毫秒執行一次，最多執行 30 次**
+                                confirmCount++; // 增加計數
+                                if (confirmCount >= 30) {
+                                    clearInterval(confirmInterval);
+                                    console.log("確定按鈕已點擊 30 次，停止執行");
+                                }
+                            }, 100); // **每 100ms 點擊一次，最多執行 30 次**
+                        }, 500); // **延遲 500ms 再開始點擊「確定」**
 
-                            // **當「一鍵平倉」變可點擊時，停止監測它是否變可點擊**
-                            clearInterval(checkCloseButtonInterval);
-                        } else {
-                            console.log("一鍵平倉按鈕目前不可點擊，繼續監測...");
-                        }
-                    }, 100); // **每 100ms 檢查「一鍵平倉」是否可點擊**
-                }, 500); // **延遲 500ms 再開始檢查**
+                        // **當「一鍵平倉」被點擊後，停止監測它是否可點擊**
+                        clearInterval(checkCloseButtonInterval);
+                    } else {
+                        console.log("一鍵平倉按鈕目前不可點擊，繼續監測...");
+                    }
+                }, 100); // **每 100ms 檢查「一鍵平倉」是否可點擊**
             }
         });
     }
