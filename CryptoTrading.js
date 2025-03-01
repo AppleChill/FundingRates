@@ -47,67 +47,77 @@ let intervalID = setInterval(() => {
                         closeButton.click();
                         console.log("一鍵平倉按鈕已被點擊");
 
-                        // **點擊「一鍵平倉」後，延遲 500ms 再點擊「確定」**
-                        setTimeout(() => {
-                            let confirmCount = 0; // 確定按鈕點擊計數，最多執行 30 次
-                            let confirmInterval = setInterval(() => {
-                                // 尋找「確定」按鈕
-                                const confirmButton = Array.from(document.querySelectorAll('button.footer_btn'))
-                                    .find(button => button.getAttribute('type') === 'button' && button.innerText.includes("確定"));
+                        // **輪詢檢查數值是否超過閾值**
+                        let valueCheckInterval = setInterval(() => {
+                            // 取得當前交易數值
+                            let outerDivs = document.querySelectorAll(".bu-descriptions-item.bu-descriptions-item--align-left");
+                            let values = [];
 
-                                // 取得當前交易數值
-                                let outerDivs = document.querySelectorAll(".bu-descriptions-item.bu-descriptions-item--align-left");
-                                let values = [];
-
-                                // 解析數值
-                                outerDivs.forEach(outerDiv => {
-                                    let innerDivs = outerDiv.querySelectorAll(".bu-descriptions--content");
-                                    innerDivs.forEach(innerDiv => {
-                                        let numbers = innerDiv.querySelectorAll(".fvn-number");
-                                        numbers.forEach(el => {
-                                            let num = parseFloat(el.textContent.trim());
-                                            if (!isNaN(num)) {
-                                                values.push(num);
-                                            }
-                                        });
+                            outerDivs.forEach(outerDiv => {
+                                let innerDivs = outerDiv.querySelectorAll(".bu-descriptions--content");
+                                innerDivs.forEach(innerDiv => {
+                                    let numbers = innerDiv.querySelectorAll(".fvn-number");
+                                    numbers.forEach(el => {
+                                        let num = parseFloat(el.textContent.trim());
+                                        if (!isNaN(num)) {
+                                            values.push(num);
+                                        }
                                     });
                                 });
+                            });
 
-                                // 取得倒數第二個數值
-                                if (values.length >= 2) {
-                                    let secondLastValue = values[values.length - 2];
+                            // 取得倒數第二個數值
+                            if (values.length >= 2) {
+                                let secondLastValue = values[values.length - 2];
 
-                                    // 若數值超過閾值範圍，則點擊「確定」
-                                    if (secondLastValue < LOWER_THRESHOLD || secondLastValue > UPPER_THRESHOLD) {
+                                // **若數值超過閾值範圍，則開始尋找並點擊「確定」按鈕**
+                                if (secondLastValue < LOWER_THRESHOLD || secondLastValue > UPPER_THRESHOLD) {
+                                    console.log(`數值 ${secondLastValue} 超出範圍，開始尋找「確定」按鈕...`);
+
+                                    let confirmCount = 0; // 計數變數
+                                    // 啟動另一個 setInterval 來尋找並點擊「確定」按鈕
+                                    let checkButtonInterval = setInterval(() => {
+                                        // **尋找「確定」按鈕**
+                                        const confirmButton = Array.from(document.querySelectorAll('button.footer_btn'))
+                                            .find(button => button.getAttribute('type') === 'button' && button.innerText.includes("確定"));
+
                                         if (confirmButton) {
-                                            confirmButton.click();
-                                            console.log(`數值 ${secondLastValue}`);
-                                            console.log(`確定按鈕已被點擊 (${confirmCount + 1}/30)`);
-                                        }
-                                        confirmCount++; // 計數 +1
-                                        
-                                        // 若已點擊 30 次，停止執行
-                                        if (confirmCount >= 30) {
-                                            clearInterval(confirmInterval);
-                                            console.log("確定按鈕已點擊 30 次，停止執行");
-                                        }
-                                    } else {
-                                        console.log(`數值在 ${LOWER_THRESHOLD} 和 ${UPPER_THRESHOLD} 之間，不做額外動作`, secondLastValue);
-                                    }
-                                } else {
-                                    console.log("數值數量不足，無法取得倒數第二個值");
-                                    clearInterval(confirmInterval);
-                                }
-                            }, 100); // **每 100ms 點擊一次，最多執行 30 次**
+                                            clearInterval(checkButtonInterval); // 找到按鈕後停止尋找
 
-                        }, 500); // **延遲 500ms 再開始點擊「確定」**
+                                            // 開始點擊按鈕，每 10 毫秒點擊一次，執行 30 次
+                                            const clickInterval = setInterval(() => {
+                                                confirmButton.click();
+                                                confirmCount++;
+                                                console.log(`確定按鈕已被點擊 (${confirmCount}/30)`);
+
+                                                if (confirmCount >= 30) {
+                                                    clearInterval(clickInterval);
+                                                    clearInterval(checkButtonInterval);
+                                                    console.log("確定按鈕已點擊 30 次，停止點擊");
+                                                }
+                                            }, 10); // 每 10 毫秒點擊一次
+
+                                        } else {
+                                            console.log("尚未找到確定按鈕，繼續檢查...");
+                                        }
+                                    }, 10); // **每 10ms 檢查一次是否找到按鈕**
+
+                                    // 數值檢查完成後停止 `valueCheckInterval`
+                                    clearInterval(valueCheckInterval);
+                                } else {
+                                    console.log(`數值在 ${LOWER_THRESHOLD} 和 ${UPPER_THRESHOLD} 之間，不做額外動作: ${secondLastValue}`);
+                                }
+                            } else {
+                                console.log("數值數量不足，無法取得倒數第二個值");
+                            }
+                        }, 10); // **每 10ms 檢查數值**
 
                         // **當「一鍵平倉」被點擊後，停止監測**
                         clearInterval(checkCloseButtonInterval);
                     } else {
                         console.log("一鍵平倉按鈕目前不可點擊，繼續監測...");
                     }
-                }, 100); // **每 100ms 檢查「一鍵平倉」是否可點擊**
+                }, 1); // **每 1ms 檢查「一鍵平倉」是否可點擊**
             }
         });
     }
