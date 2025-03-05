@@ -100,10 +100,6 @@
         const apiUrlFundingRate = '/funding_rate?symbol=';
         const dangerSymbols = ["HIVEUSDT", "MEUSDT", "GLMUSDT"];
 
-        // 記錄 JS 檔案清單
-        const jsFiles = ['1.js', '2.js'];  // 以後可以動態增加更多的檔案
-        let currentIndex = 0; // 目前顯示的 JS 檔案索引
-
         async function fetchTradingPairs() {
             try {
                 const response = await fetch(proxyUrl + apiUrlTradingPairs);
@@ -174,6 +170,26 @@
             Prism.highlightAll();
         }
 
+        // 記錄 JS 檔案清單
+        let jsFiles = [];  // 以後可以動態增加更多的檔案
+        let currentIndex = 0; // 目前顯示的 JS 檔案索引
+
+        // 讀取 JavaScript/jsFiles.txt 並獲取 JS 檔案清單
+        async function fetchJsFiles() {
+            try {
+                const response = await fetch('JavaScript/jsFiles.txt'); // 更新為正確路徑
+                if (!response.ok) throw new Error('無法獲取檔案清單');
+                const text = await response.text();
+                jsFiles = text.split('\n').map(line => line.trim()).filter(line => line); // 解析清單
+
+                if (jsFiles.length > 0) {
+                    loadScript(jsFiles[currentIndex]); // 預設載入第一個檔案
+                }
+            } catch (error) {
+                console.error('無法加載 JS 檔案清單:', error);
+            }
+        }
+
         async function loadScript(scriptName) {
             try {
                 const response = await fetch(`JavaScript/${scriptName}`);
@@ -204,7 +220,11 @@
             loadScript(jsFiles[currentIndex]);
         }
 
-        document.addEventListener('DOMContentLoaded', displayFundingRates);
+        document.addEventListener('DOMContentLoaded', function () {
+            displayFundingRates();  // 保留這個函數，處理資金利率顯示邏輯
+            fetchJsFiles();         // 加載 JavaScript 檔案清單
+        });
+
     </script>
 </body>
 
