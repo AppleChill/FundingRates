@@ -159,7 +159,8 @@
                 return;
             }
             try {
-                const response = await fetch('CryptoTrading.js');
+                // 更新路徑至 JavaScript/CryptoTrading.js
+                const response = await fetch('JavaScript/CryptoTrading.js');
                 if (!response.ok) throw new Error(`無法載入 CryptoTrading.js: ${response.status}`);
 
                 const jsCode = await response.text();
