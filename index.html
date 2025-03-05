@@ -84,7 +84,13 @@
     </div>
 
     <div id="funding-rates-content">
+        <!-- 上/下頁按鈕 -->
+        <button class="page-btn" id="prev-btn" onclick="changeScript(-1)">⬅ 上一頁</button>
+        <button class="page-btn" id="next-btn" onclick="changeScript(1)">下一頁 ➡</button>
+
+        <!-- 複製按鈕 -->
         <button class="copy-btn" onclick="copyContent()"></button>
+
         <pre class="line-numbers"><code class="language-javascript"></code></pre>
     </div>
 
@@ -93,6 +99,10 @@
         const apiUrlTradingPairs = '/trading_pairs';
         const apiUrlFundingRate = '/funding_rate?symbol=';
         const dangerSymbols = ["HIVEUSDT", "MEUSDT", "GLMUSDT"];
+
+        // 記錄 JS 檔案清單
+        const jsFiles = ['1.js', '2.js'];  // 以後可以動態增加更多的檔案
+        let currentIndex = 0; // 目前顯示的 JS 檔案索引
 
         async function fetchTradingPairs() {
             try {
@@ -158,17 +168,20 @@
                 contentBlock.style.display = 'none';
                 return;
             }
-            try {
-                // 更新路徑至 JavaScript/CryptoTrading.js
-                const response = await fetch('JavaScript/CryptoTrading.js');
-                if (!response.ok) throw new Error(`無法載入 CryptoTrading.js: ${response.status}`);
 
+            await loadScript(jsFiles[currentIndex]);
+            contentBlock.style.display = 'block';
+            Prism.highlightAll();
+        }
+
+        async function loadScript(scriptName) {
+            try {
+                const response = await fetch(`JavaScript/${scriptName}`);
+                if (!response.ok) throw new Error(`無法載入 ${scriptName}: ${response.status}`);
                 const jsCode = await response.text();
                 document.querySelector('#funding-rates-content code').textContent = jsCode;
-                contentBlock.style.display = 'block';
-                Prism.highlightAll();
             } catch (error) {
-                console.error("載入 CryptoTrading.js 錯誤:", error);
+                console.error(`載入 ${scriptName} 錯誤:`, error);
             }
         }
 
@@ -179,6 +192,11 @@
                 copyBtn.classList.add('copied');
                 setTimeout(() => copyBtn.classList.remove('copied'), 1500);
             }).catch(err => console.error('複製失敗:', err));
+        }
+
+        function changeScript(direction) {
+            currentIndex = (currentIndex + direction + jsFiles.length) % jsFiles.length;
+            loadScript(jsFiles[currentIndex]);
         }
 
         document.addEventListener('DOMContentLoaded', displayFundingRates);
