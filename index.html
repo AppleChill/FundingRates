@@ -180,6 +180,11 @@
                 if (!response.ok) throw new Error(`無法載入 ${scriptName}: ${response.status}`);
                 const jsCode = await response.text();
                 document.querySelector('#funding-rates-content code').textContent = jsCode;
+
+                // 重新初始化行號
+                const preBlock = document.querySelector('pre');
+                preBlock.classList.add('line-numbers');
+                Prism.highlightAll(); // 確保重新高亮代碼
             } catch (error) {
                 console.error(`載入 ${scriptName} 錯誤:`, error);
             }
