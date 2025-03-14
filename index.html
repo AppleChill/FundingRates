@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh">
 
@@ -100,12 +101,23 @@
         const apiUrlFundingRate = '/funding_rate?symbol=';
         const dangerSymbols = ["HIVEUSDT", "MEUSDT", "GLMUSDT"];
 
+        const tradingPairsMap = {}; // 存交易對資訊
+
         async function fetchTradingPairs() {
             try {
                 const response = await fetch(proxyUrl + apiUrlTradingPairs);
                 if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                 const data = await response.json();
-                return data.data.map(pair => pair.symbol);
+
+                data.data.forEach(pair => {
+                    tradingPairsMap[pair.symbol] = {
+                        maxMarketOrderVolume: parseFloat(pair.maxMarketOrderVolume),
+                        maxLimitOrderVolume: parseFloat(pair.maxLimitOrderVolume),
+                        minTradeVolume: parseFloat(pair.minTradeVolume)
+                    };
+                });
+
+                return Object.keys(tradingPairsMap); // 回傳所有 symbol 陣列
             } catch (error) {
                 alert("請求失敗，請檢查 Cloudflare Workers 是否正常運作！");
                 console.error(error);
@@ -132,11 +144,23 @@
                 const response = await fetch(proxyUrl + apiUrlFundingRate + symbol);
                 if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                 const data = await response.json();
+
                 const fundingRate = parseFloat(data.data.fundingRate);
+                const price = parseFloat(data.data.markPrice) || 1; // 修正為 markPrice
 
-                rates.push({ symbol, fundingRate });
+                // 交易量資訊來自 tradingPairsMap
+                const pairInfo = tradingPairsMap[symbol] || {};
+
+                rates.push({
+                    symbol,
+                    fundingRate,
+                    price, // 存市場價格
+                    maxMarketOrderVolume: pairInfo.maxMarketOrderVolume || 0,
+                    maxLimitOrderVolume: pairInfo.maxLimitOrderVolume || 0,
+                    minTradeVolume: pairInfo.minTradeVolume || 0,
+                });
+
                 progress.completed++;
-
                 updateDisplay(rates, progress);
             } catch (error) {
                 console.error("請求錯誤:", error);
@@ -153,7 +177,30 @@
                 .sort((a, b) => a.fundingRate - b.fundingRate)
                 .map(rate => {
                     const isDanger = dangerSymbols.includes(rate.symbol);
-                    return `<li class="${isDanger ? 'danger' : ''}">${rate.symbol}: ${rate.fundingRate}</li>`;
+                    const price = rate.price || 1; // 確保 price 不為 0
+
+                    const marketOrderUSD = (rate.maxMarketOrderVolume * price).toFixed(2);
+                    const limitOrderUSD = (rate.maxLimitOrderVolume * price).toFixed(2);
+                    const minTradeUSD = (rate.minTradeVolume * price).toFixed(2);
+
+                    return `
+                       <li class="${isDanger ? 'danger' : ''}">
+                           <strong>${rate.symbol}</strong>: ${rate.fundingRate}<br>
+                           當前價格 (Mark Price): $${price.toFixed(6)} USD<br>
+                           最大市價單交易量: ${rate.maxMarketOrderVolume}<br>
+                           最大限價單交易量: ${rate.maxLimitOrderVolume}<br>
+                           最小交易量: ${rate.minTradeVolume}
+                       </li>
+                   `;
+                //    return `
+                //        <li class="${isDanger ? 'danger' : ''}">
+                //            <strong>${rate.symbol}</strong>: ${rate.fundingRate}<br>
+                //            當前價格 (Mark Price): $${price.toFixed(6)} USD<br>
+                //            最大市價單交易量: ${rate.maxMarketOrderVolume} (${marketOrderUSD} USD)<br>
+                //            最大限價單交易量: ${rate.maxLimitOrderVolume} (${limitOrderUSD} USD)<br>
+                //            最小交易量: ${rate.minTradeVolume} (${minTradeUSD} USD)
+                //        </li>
+                //    `;
                 })
                 .join('');
         }
@@ -222,7 +269,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             displayFundingRates();  // 保留這個函數，處理資金利率顯示邏輯
-            fetchJsFiles();         // 加載 JavaScript 檔案清單
+            //fetchJsFiles();         // 加載 JavaScript 檔案清單
         });
 
     </script>
