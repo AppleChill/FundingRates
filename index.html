@@ -184,23 +184,23 @@
                     const minTradeUSD = (rate.minTradeVolume * price).toFixed(2);
 
                     return `
-                        <li class="${isDanger ? 'danger' : ''}">
+                         <li class="${isDanger ? 'danger' : ''}">
                             <strong>${rate.symbol}</strong>: ${rate.fundingRate}<br>
                             當前價格 (Mark Price): $${price.toFixed(6)} USD<br>
-                            最大市價單交易量: ${rate.maxMarketOrderVolume.toLocaleString()} (${marketOrderUSD.toLocaleString()} USD)<br>
-                            最大限價單交易量: ${rate.maxLimitOrderVolume.toLocaleString()} (${limitOrderUSD.toLocaleString()} USD)<br>
-                            最小交易量: ${rate.minTradeVolume.toLocaleString()} (${minTradeUSD.toLocaleString()} USD)
+                            最大市價單交易量: ${rate.maxMarketOrderVolume.toLocaleString()}<br>
+                            最大限價單交易量: ${rate.maxLimitOrderVolume.toLocaleString()}<br>
+                            最小交易量: ${rate.minTradeVolume.toLocaleString()}
                         </li>
                     `;
-                   // return `
-                   //     <li class="${isDanger ? 'danger' : ''}">
-                   //         <strong>${rate.symbol}</strong>: ${rate.fundingRate}<br>
-                   //         當前價格 (Mark Price): $${price.toFixed(6)} USD<br>
-                   //         最大市價單交易量: ${rate.maxMarketOrderVolume} (${marketOrderUSD} USD)<br>
-                   //         最大限價單交易量: ${rate.maxLimitOrderVolume} (${limitOrderUSD} USD)<br>
-                   //         最小交易量: ${rate.minTradeVolume} (${minTradeUSD} USD)
-                   //     </li>
-                   // `;
+                    // return `
+                    //      <li class="${isDanger ? 'danger' : ''}">
+                    //         <strong>${rate.symbol}</strong>: ${rate.fundingRate}<br>
+                    //         當前價格 (Mark Price): $${price.toFixed(6)} USD<br>
+                    //         最大市價單交易量: ${rate.maxMarketOrderVolume.toLocaleString()} (${marketOrderUSD.toLocaleString()} USD)<br>
+                    //         最大限價單交易量: ${rate.maxLimitOrderVolume.toLocaleString()} (${limitOrderUSD.toLocaleString()} USD)<br>
+                    //         最小交易量: ${rate.minTradeVolume.toLocaleString()} (${minTradeUSD.toLocaleString()} USD)
+                    //     </li>
+                    // `;
                 })
                 .join('');
         }
